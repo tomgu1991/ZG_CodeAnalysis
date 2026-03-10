@@ -62,7 +62,8 @@ https://strongduanmu.com/blog/opcode-mnemonics-by-opcode.html
      * 同步指令：monitorenter/monitorexit 由synchronized块触发，实现对象锁的获取 / 释放。
      * 注意：
        * 所有的异常处理都是通过异常表来实现的，而不是通过特定的字节码指令。所以try-catch要看异常表！！！
-       * invokedynamic/invokeinterface: 运行时知道（要看具体的栈的对象是什么），后面是类型+参数slot的个数。一般是ref+参数
+       * invokeinterface: 运行时知道（要看具体的栈的对象是什么），后面是类型+参数slot的个数。一般是ref+参数
+       * nvokedynamic 后的数字，不是「目标方法的参数 slot 数」，而是执行「引导方法」时，需要从操作数栈消耗的 slot 数。
    * 扩展
      * wide：扩展指令，修改后续指令的参数宽度，支持更大的局部变量表索引和常量值
      * multianewarray：创建多维数组，参数是类型和维度
@@ -70,3 +71,9 @@ https://strongduanmu.com/blog/opcode-mnemonics-by-opcode.html
      * goto_w/jsr_w：无条件跳转，参数是一个32位的偏移量，适用于更远的跳转
      * breakpoint：调试指令，触发调试器断点
      * impdep1/impdep2：保留指令，供特定平台使用，JVM规范未定义其行为
+
+## 一些例子
+```shell
+LOCALVARIABLE this Lgu/zuxing/bytecode/HelloByteCode; L0 L1 0
+LOCALVARIABLE <变量名> <变量类型描述符> <作用域起始标签> <作用域结束标签> <本地变量表索引>
+```

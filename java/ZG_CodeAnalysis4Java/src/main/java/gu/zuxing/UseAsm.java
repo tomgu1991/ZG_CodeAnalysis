@@ -1,6 +1,7 @@
 package gu.zuxing;
 
 import org.objectweb.asm.*;
+import org.objectweb.asm.tree.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,26 +60,61 @@ public class UseAsm {
     private static final String FILE_PATH =
 //            "sample_project/target/classes/com/example/TestCase1.class";
             "target/classes/gu/zuxing/bytecode/HelloByteCode.class";
+
     public static void main(String[] args) {
         System.out.println("Hello, ASM!");
         byte[] classBytes = loadClassBytes(FILE_PATH);
         if (classBytes != null) {
             System.out.println("Class file loaded successfully, size: " + classBytes.length + " bytes");
             // 这里可以添加使用 ASM 进行字节码分析或修改的示例代码
-            MethodCollectorVisitor methodCollector = new MethodCollectorVisitor();
             ClassReader cr = new ClassReader(classBytes);
-            cr.accept(methodCollector, 0);
-            System.out.println("Finish visiting.");
-            for (Map.Entry<String, List<CallSite>> entry : callsByMethod.entrySet()) {
-                System.out.println("Method: " + entry.getKey());
-                for (CallSite call : entry.getValue()) {
-                    System.out.println("  Call: " + call.owner + "." + call.name + call.desc + " at line " + call.line);
-                }
-            }
+            useVisitor(cr);
+            useTree(cr);
 
         } else {
             System.out.println("Failed to load class file.");
         }
+    }
+
+    private static void useVisitor(ClassReader cr) {
+        System.out.println("Use visitor to analyze class...");
+        MethodCollectorVisitor methodCollector = new MethodCollectorVisitor();
+        cr.accept(methodCollector, 0);
+
+        System.out.println("Finish visiting.");
+        for (Map.Entry<String, List<CallSite>> entry : callsByMethod.entrySet()) {
+            System.out.println("Method: " + entry.getKey());
+            for (CallSite call : entry.getValue()) {
+                System.out.println("  Call: " + call.owner + "." + call.name + call.desc + " at line " + call.line);
+            }
+        }
+    }
+
+    public static void useTree(ClassReader cr) {
+        System.out.println("Use tree API to analyze class...");
+        ClassNode classNode = new ClassNode();
+        cr.accept(classNode, ClassReader.EXPAND_FRAMES);
+        // 这里可以遍历 classNode 的结构，分析方法调用等信息
+        List<MethodNode> methods = classNode.methods;
+        for (MethodNode method : methods) {
+            System.out.println("Method: " + method.name + ", Descriptor: " + method.desc);
+            System.out.println("localVariables: " + method.localVariables);
+            System.out.println("MaxStack: " + method.maxStack + ", MaxLocals: " + method.maxLocals);
+            System.out.println("Instructions: " + method.instructions.size());
+            // 可以进一步分析 method.instructions 来获取调用信息
+            InsnList instructions = method.instructions;
+            for(AbstractInsnNode insn : instructions.toArray()) {
+                if (insn.getType() == AbstractInsnNode.METHOD_INSN) {
+                    MethodInsnNode methodInsn = (MethodInsnNode) insn;
+                    System.out.println("  Call: " + methodInsn.owner + "." + methodInsn.name + methodInsn.desc);
+                } else if (insn.getType() == AbstractInsnNode.INVOKE_DYNAMIC_INSN) {
+                    InvokeDynamicInsnNode indy = (InvokeDynamicInsnNode) insn;
+                    System.out.println("  InvokeDynamic: " + indy.name + indy.desc);
+                }
+            }
+        }
+
+        System.out.println("Finish visiting.");
     }
 
     public static byte[] loadClassBytes(String fileName) {
