@@ -59,7 +59,7 @@ public class UseAsm {
 
     private static final String FILE_PATH =
 //            "sample_project/target/classes/com/example/TestCase1.class";
-            "target/classes/gu/zuxing/bytecode/HelloByteCode.class";
+            "target/classes/gu/zuxing/bytecode/ByteCodeAllInstDemo.class";
 
     public static void main(String[] args) {
         System.out.println("Hello, ASM!");
@@ -94,6 +94,9 @@ public class UseAsm {
         System.out.println("Use tree API to analyze class...");
         ClassNode classNode = new ClassNode();
         cr.accept(classNode, ClassReader.EXPAND_FRAMES);
+
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES);
+        classNode.accept(cw);
         // 这里可以遍历 classNode 的结构，分析方法调用等信息
         List<MethodNode> methods = classNode.methods;
         for (MethodNode method : methods) {
